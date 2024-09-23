@@ -97,11 +97,13 @@
 
         startButton.addEventListener('click', () => {
             if (scanner && scanner.hasStarted()) {
-                scanner.stop();
-                startButton.textContent = 'Start Scanning';
-                return;
+                stopScanning();
+            } else {
+                startScanning();
             }
+        });
 
+        function startScanning() {
             try {
                 if (!scanner) {
                     scanner = new QrScanner(
@@ -124,7 +126,15 @@
             } catch (err) {
                 errorElement.textContent = `Error initializing scanner: ${err.message}`;
             }
-        });
+        }
+
+        function stopScanning() {
+            if (scanner) {
+                scanner.stop();
+                startButton.textContent = 'Start Scanning';
+                errorElement.textContent = '';
+            }
+        }
     </script>
 </body>
 </html>
