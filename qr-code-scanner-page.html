@@ -95,46 +95,51 @@
 
         let scanner = null;
 
-        startButton.addEventListener('click', () => {
-            if (scanner && scanner.hasStarted()) {
-                stopScanning();
-            } else {
-                startScanning();
-            }
-        });
+        function onScanSuccess(result) {
+            console.log('Decoded QR code:', result);
+            resultElement.textContent = `Scanned QR Code: ${result.data}`;
+            window.open(result.data, '_blank');
+        }
 
-        function startScanning() {
+        function initializeScanner() {
             try {
-                if (!scanner) {
-                    scanner = new QrScanner(
-                        video,
-                        result => {
-                            console.log('Decoded QR code:', result);
-                            resultElement.textContent = `Scanned QR Code: ${result.data}`;
-                            window.open(result.data, '_blank');
-                        },
-                        { /* you can add any options here */ }
-                    );
-                }
+                scanner = new QrScanner(video, onScanSuccess, {
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                });
 
-                scanner.start().then(() => {
+                // Add event listeners for camera status
+                scanner.addListener('start', () => {
                     startButton.textContent = 'Stop Scanning';
                     errorElement.textContent = '';
-                }).catch(err => {
-                    errorElement.textContent = `Error starting scanner: ${err.message}`;
                 });
+
+                scanner.addListener('stop', () => {
+                    startButton.textContent = 'Start Scanning';
+                    errorElement.textContent = '';
+                });
+
             } catch (err) {
                 errorElement.textContent = `Error initializing scanner: ${err.message}`;
             }
         }
 
-        function stopScanning() {
-            if (scanner) {
-                scanner.stop();
-                startButton.textContent = 'Start Scanning';
-                errorElement.textContent = '';
+        startButton.addEventListener('click', () => {
+            if (!scanner) {
+                initializeScanner();
             }
-        }
+
+            if (scanner.hasStarted()) {
+                scanner.stop();
+            } else {
+                scanner.start().catch(err => {
+                    errorElement.textContent = `Error starting scanner: ${err.message}`;
+                });
+            }
+        });
+
+        // Initialize scanner when the page loads
+        initializeScanner();
     </script>
 </body>
 </html>
