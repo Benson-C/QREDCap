@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>REDCap Questionnaire</title>
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --primary-color: #3498db;
+                --secondary-color: #2980b9;
+                --background-color: #f0f4f8;
+                --text-color: #2c3e50;
+                --input-background: #ffffff;
+                --input-border: #bdc3c7;
+                --success-color: #2ecc71;
+                --error-color: #e74c3c;
+            }
+    
+            body {
+                font-family: 'Nunito', sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                background-color: var(--background-color);
+                color: var(--text-color);
+            }
+    
+            .container {
+                max-width: 800px;
+                margin: 40px auto;
+                background-color: var(--input-background);
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+    
+            h1 {
+                text-align: center;
+                color: var(--primary-color);
+                margin-bottom: 30px;
+                font-size: 2.5em;
+            }
+    
+            .question {
+                margin-bottom: 30px;
+            }
+    
+            .question label {
+                display: block;
+                margin-bottom: 10px;
+                font-weight: bold;
+                font-size: 1.1em;
+            }
+    
+            input[type="text"], textarea {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid var(--input-border);
+                border-radius: 8px;
+                font-size: 1em;
+                transition: border-color 0.3s ease;
+                font-family: 'Nunito', sans-serif;
+            }
+    
+            input[type="text"]:focus, textarea:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+            }
+    
+            .radio-group, .checkbox-group {
+                margin-top: 10px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .radio-group label, .checkbox-group label {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;  /* Add space between options */
+                font-weight: normal;
+                cursor: pointer;
+            }
+
+    
+            input[type="radio"], input[type="checkbox"] {
+                position: absolute;
+                opacity: 0;
+            }
+    
+            .radio-group label::before, .checkbox-group label::before {
+                content: '';
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                margin-right: 10px;
+                border: 2px solid var(--primary-color);
+                border-radius: 50%;
+                transition: all 0.3s ease;
+            }
+    
+            .checkbox-group label::before {
+                border-radius: 4px;
+            }
+    
+            input[type="radio"]:checked + label::before {
+                background-color: var(--primary-color);
+                box-shadow: inset 0 0 0 4px var(--input-background);
+            }
+    
+            input[type="checkbox"]:checked + label::before {
+                background-color: var(--primary-color);
+                border-color: var(--primary-color);
+            }
+    
+            input[type="checkbox"]:checked + label::after {
+                content: '✓';
+                position: absolute;
+                left: 5px;
+                top: 1px;
+                color: white;
+                font-size: 14px;
+            }
+    
+            button {
+                display: block;
+                width: 100%;
+                padding: 15px;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1.1em;
+                transition: background-color 0.3s ease;
+                font-family: 'Nunito', sans-serif;
+            }
+    
+            button:hover {
+                background-color: var(--secondary-color);
+            }
+    
+            .message {
+                text-align: center;
+                margin-top: 20px;
+                padding: 10px;
+                border-radius: 8px;
+            }
+    
+            .success {
+                background-color: var(--success-color);
+                color: white;
+            }
+    
+            .error {
+                background-color: var(--error-color);
+                color: white;
+            }
+        </style>
+    </head>
+<body>
+    <div class="container">
+        <h1>EMPRESS Questionnaire</h1>
+        <form id="questionnaireForm">
+            <!-- Questionnaire content will be dynamically inserted here -->
+        </form>
+        <div id="message" class="message" style="display: none;"></div>
+    </div>
+
+    <script>
+        const apiUrl = 'https://rc.ortho.hku.hk/redcap/api/';
+        const token = '59DE940CAEDA63383258E9FDE5EA56C5';
+
+        async function fetchREDCapData(apiUrl, token) {
+            const formData = new FormData();
+            formData.append('token', token);
+            formData.append('content', 'metadata');
+            formData.append('format', 'json');
+            formData.append('returnFormat', 'json');
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching REDCap data:', error);
+                return null;
+            }
+        }
+
+        async function renderQuestionnaire() {
+             const redcapData = await fetchREDCapData(apiUrl, token);
+
+            if (!redcapData) {
+                showMessage('Failed to fetch questionnaire data. Please try again later.', 'error');
+                return;
+            }
+
+            const form = document.getElementById('questionnaireForm');
+
+            redcapData.forEach(field => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+
+                const label = document.createElement('label');
+                label.innerHTML = field.field_label; // Changed from textContent to innerHTML
+                label.setAttribute('for', field.field_name);
+                questionDiv.appendChild(label);
+
+                switch (field.field_type) {
+                    case 'text':
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = field.field_name;
+                        input.name = field.field_name;
+                        questionDiv.appendChild(input);
+                        break;
+                    case 'radio':
+                    case 'checkbox':
+                        const optionsDiv = document.createElement('div');
+                        optionsDiv.className = field.field_type === 'radio' ? 'radio-group' : 'checkbox-group';
+                        field.select_choices_or_calculations.split('|').forEach((choice, index) => {
+                            const [value, label] = choice.trim().split(', ');
+                            const optionInput = document.createElement('input');
+                            optionInput.type = field.field_type;
+                            optionInput.id = `${field.field_name}_${index}`;
+                            optionInput.name = field.field_name;
+                            optionInput.value = value;
+
+                            const optionLabel = document.createElement('label');
+                            optionLabel.innerHTML = label; // Changed from textContent to innerHTML
+                            optionLabel.setAttribute('for', `${field.field_name}_${index}`);
+
+                            optionsDiv.appendChild(optionInput);
+                            optionsDiv.appendChild(optionLabel);
+                        });
+                        questionDiv.appendChild(optionsDiv);
+                        break;
+                    case 'notes':
+                        const textarea = document.createElement('textarea');
+                        textarea.id = field.field_name;
+                        textarea.name = field.field_name;
+                        textarea.rows = 4;
+                        questionDiv.appendChild(textarea);
+                        break;
+                }
+
+                form.appendChild(questionDiv);
+            });
+            
+            const submitButton = document.createElement('button');
+            submitButton.type = 'submit';
+            submitButton.textContent = 'Submit';
+            form.appendChild(submitButton);
+
+            form.addEventListener('submit', handleSubmit);
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            // Escape HTML in form data
+            const escapedFormData = {};
+            for (let [key, value] of formData.entries()) {
+                escapedFormData[key] = escapeHtml(value);
+            }
+            
+            const recordData = {
+                token: token,
+                content: 'record',
+                format: 'json',
+                type: 'flat',
+                data: JSON.stringify([escapedFormData])
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: new URLSearchParams(recordData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Form submitted successfully:', result);
+                showMessage('Form submitted successfully!', 'success');
+                event.target.reset();
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                showMessage('Error submitting form. Please try again.', 'error');
+            }
+        }
+
+        // Function to escape HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        window.addEventListener('load', renderQuestionnaire);
+    </script>
+</body>
+</html>
