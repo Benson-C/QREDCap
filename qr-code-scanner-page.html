@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.min.js"></script>
+    <title>Professional QR Code Scanner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -70,6 +70,10 @@
             color: #2c3e50;
             word-break: break-all;
         }
+        #error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -80,33 +84,46 @@
         </div>
         <button id="start-button">Start Scanning</button>
         <div id="result"></div>
+        <div id="error-message"></div>
     </div>
 
     <script>
         const video = document.getElementById('qr-video');
         const startButton = document.getElementById('start-button');
         const resultElement = document.getElementById('result');
+        const errorElement = document.getElementById('error-message');
 
         let scanner = null;
 
         startButton.addEventListener('click', () => {
-            if (scanner) {
-                if (scanner.hasFlash) {
-                    scanner.toggleFlash();
-                }
-                scanner.start();
-                startButton.textContent = 'Stop Scanning';
+            if (scanner && scanner.hasStarted()) {
+                scanner.stop();
+                startButton.textContent = 'Start Scanning';
                 return;
             }
 
-            scanner = new QrScanner(video, result => {
-                console.log('Decoded QR code:', result);
-                resultElement.textContent = `Scanned QR Code: ${result}`;
-                window.open(result, '_blank');
-            });
+            try {
+                if (!scanner) {
+                    scanner = new QrScanner(
+                        video,
+                        result => {
+                            console.log('Decoded QR code:', result);
+                            resultElement.textContent = `Scanned QR Code: ${result.data}`;
+                            window.open(result.data, '_blank');
+                        },
+                        { /* you can add any options here */ }
+                    );
+                }
 
-            scanner.start();
-            startButton.textContent = 'Stop Scanning';
+                scanner.start().then(() => {
+                    startButton.textContent = 'Stop Scanning';
+                    errorElement.textContent = '';
+                }).catch(err => {
+                    errorElement.textContent = `Error starting scanner: ${err.message}`;
+                });
+            } catch (err) {
+                errorElement.textContent = `Error initializing scanner: ${err.message}`;
+            }
         });
     </script>
 </body>
