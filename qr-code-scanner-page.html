@@ -64,11 +64,9 @@
         #start-button:active {
             transform: scale(0.98);
         }
-        #result {
+        #result, #error-message {
             margin-top: 20px;
             font-weight: bold;
-            color: #2c3e50;
-            word-break: break-all;
         }
         #error-message {
             color: #e74c3c;
@@ -115,12 +113,7 @@
                         video,
                         result => {
                             console.log('Decoded QR code:', result);
-                            if (result.data.startsWith('http://') || result.data.startsWith('https://')) {
-                                resultElement.innerHTML = `Detected: <a href="${decodedText}" target="_blank">${decodedText}</a>`;
-                            }
-                            else {
-                                resultElement.textContent = `Scanned QR Code: ${result.data}`;
-                            }
+                            resultElement.textContent = `Scanned QR Code: ${result.data}`;
                             window.open(result.data, '_blank');
                         },
                         { /* you can add any options here */ }
