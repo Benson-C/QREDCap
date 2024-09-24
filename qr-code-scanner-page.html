@@ -97,7 +97,7 @@
 
         startButton.addEventListener('click', () => {
             if (scanner && scanner.hasStarted()) {
-                if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+                if (result.data.startsWith('http://') || result.data.startsWith('https://')) {
                     window.open(decodedText, '_blank');
                 }
                 else {
