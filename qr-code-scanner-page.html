@@ -115,7 +115,12 @@
                         video,
                         result => {
                             console.log('Decoded QR code:', result);
-                            resultElement.textContent = `Scanned QR Code: ${result.data}`;
+                            if (result.data.startsWith('http://') || result.data.startsWith('https://')) {
+                                resultElement.innerHTML = `Detected: <a href="${decodedText}" target="_blank">${decodedText}</a>`;
+                            }
+                            else {
+                                resultElement.textContent = `Scanned QR Code: ${result.data}`;
+                            }
                             window.open(result.data, '_blank');
                         },
                         { /* you can add any options here */ }
