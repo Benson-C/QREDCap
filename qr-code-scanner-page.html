@@ -27,6 +27,13 @@
             max-width: 90%;
             width: 400px;
         }
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            letter-spacing: 1px;
+        }
         #video-container {
             width: 300px;
             height: 300px;
@@ -95,18 +102,13 @@
                         console.log('QR Code detected:', decodedText);
                         
                         // Create a clickable link for the decoded text
-                        //if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
-                        //    resultDiv.innerHTML = `Detected: <a href="${decodedText}" target="_blank">${decodedText}</a>`;
-                        //} else {
-                        //    resultDiv.textContent = `Detected: ${decodedText}`;
-                        //}
+                        if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+                            window.open(decodedText, '_blank')
+                            resultDiv.innerHTML = `Detected: <a href="${decodedText}" target="_blank">${decodedText}</a>`;
+                        } else {
+                            resultDiv.textContent = `Detected: ${decodedText}`;
+                        }
                         html5QrCode.stop();
-                        if (decodedText.startWith('http://') || decodedText.startWith('https://')) {
-                            window.open(decodedText, '_blank');
-                        }
-                        else {
-                            resultDiv.textContent = 'Detected: ${decodedText}'
-                        }
                         startButton.textContent = 'Start Scanning';
                     },
                     (errorMessage) => {
