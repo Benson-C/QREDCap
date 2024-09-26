@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional QR Code Scanner</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js"></script>
+    <title>QR Code Scanner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.4/html5-qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -58,86 +58,78 @@
             transition: background-color 0.3s, transform 0.1s;
             margin-bottom: 20px;
         }
-        #start-button:hover {
-            background-color: #2980b9;
-        }
-        #start-button:active {
-            transform: scale(0.98);
-        }
         #result, #error-message {
             margin-top: 20px;
             font-weight: bold;
         }
         #error-message {
-            color: #e74c3c;
-            margin-top: 10px;
+            color: rgb(167, 108, 127);
+        }
+        #result a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        #result a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>QR Code Scanner</h1>
-        <div id="video-container">
-            <video id="qr-video"></video>
-        </div>
+        <div id="video-container"></div>
         <button id="start-button">Start Scanning</button>
         <div id="result"></div>
         <div id="error-message"></div>
     </div>
 
     <script>
-        const video = document.getElementById('qr-video');
+        const videoContainer = document.getElementById('qr-video');
         const startButton = document.getElementById('start-button');
-        const resultElement = document.getElementById('result');
-        const errorElement = document.getElementById('error-message');
+        const resultDiv = document.getElementById('result');
+        const errorMessageDiv = document.getElementById('error-message');
 
-        let scanner = null;
+        let html5QrCode;
 
         startButton.addEventListener('click', () => {
-            if (scanner && scanner.hasStarted()) {
-                if (result.data.startsWith('http://') || result.data.startsWith('https://')) {
-                    window.open(decodedText, '_blank');
-                }
-                else {
-                    stopScanning();
-                }
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    startButton.textContent = 'Start Scanning';
+                }).catch((err) => {
+                    console.error('Failed to stop scanning:', err);
+                });
             } else {
-                startScanning();
+                html5QrCode = new Html5Qrcode('video-container');
+                html5QrCode.start(
+                    { facingMode: 'environment' },
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                    },
+                    (decodedText, decodedResult) => {
+                        console.log('QR Code detected:', decodedText);
+                        
+                        // Create a clickable link for the decoded text
+                        if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+                            window.open(decodedText, '_blank')
+                            resultDiv.innerHTML = `Detected: <a href="${decodedText}" target="_blank">${decodedText}</a>`;
+                        } else {
+                            resultDiv.textContent = `Detected: ${decodedText}`;
+                        }
+                        html5QrCode.stop();
+                        startButton.textContent = 'Start Scanning';
+                    },
+                    (errorMessage) => {
+                        console.error('QR Code scanning error:', errorMessage);
+                    }
+                ).catch((err) => {
+                    console.error('Failed to start scanning:', err);
+                    errorMessageDiv.textContent = 'Failed to start camera. Please make sure you have given camera permissions.';
+                });
+
+                startButton.textContent = 'Stop Scanning';
             }
         });
-
-        function startScanning() {
-            try {
-                if (!scanner) {
-                    scanner = new QrScanner(
-                        video,
-                        result => {
-                            console.log('Decoded QR code:', result);
-                            resultElement.textContent = `Scanned QR Code: ${result.data}`;
-                            window.open(result.data, '_blank');
-                        },
-                        { /* you can add any options here */ }
-                    );
-                }
-
-                scanner.start().then(() => {
-                    startButton.textContent = 'Stop Scanning';
-                    errorElement.textContent = '';
-                }).catch(err => {
-                    errorElement.textContent = `Error starting scanner: ${err.message}`;
-                });
-            } catch (err) {
-                errorElement.textContent = `Error initializing scanner: ${err.message}`;
-            }
-        }
-
-        function stopScanning() {
-            if (scanner) {
-                scanner.stop();
-                startButton.textContent = 'Start Scanning';
-                errorElement.textContent = '';
-            }
-        }
     </script>
 </body>
 </html>
