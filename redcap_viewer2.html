@@ -1,329 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>REDCap Questionnaire</title>
-        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-        <style>
-            :root {
-                --primary-color: #3498db;
-                --secondary-color: #2980b9;
-                --background-color: #f0f4f8;
-                --text-color: #2c3e50;
-                --input-background: #ffffff;
-                --input-border: #bdc3c7;
-                --success-color: #2ecc71;
-                --error-color: #e74c3c;
-            }
-    
-            body {
-                font-family: 'Nunito', sans-serif;
-                line-height: 1.6;
-                margin: 0;
-                padding: 0;
-                background-color: var(--background-color);
-                color: var(--text-color);
-            }
-    
-            .container {
-                max-width: 800px;
-                margin: 40px auto;
-                background-color: var(--input-background);
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-    
-            h1 {
-                text-align: center;
-                color: var(--primary-color);
-                margin-bottom: 30px;
-                font-size: 2.5em;
-            }
-    
-            .question {
-                margin-bottom: 30px;
-            }
-    
-            .question label {
-                display: block;
-                margin-bottom: 10px;
-                font-weight: bold;
-                font-size: 1.1em;
-            }
-    
-            input[type="text"], textarea {
-                width: 100%;
-                padding: 12px;
-                border: 1px solid var(--input-border);
-                border-radius: 8px;
-                font-size: 1em;
-                transition: border-color 0.3s ease;
-                font-family: 'Nunito', sans-serif;
-            }
-    
-            input[type="text"]:focus, textarea:focus {
-                outline: none;
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-            }
-    
-            .radio-group, .checkbox-group {
-                margin-top: 10px;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .radio-group label, .checkbox-group label {
-                display: flex;
-                align-items: center;
-                margin-bottom: 15px;  /* Add space between options */
-                font-weight: normal;
-                cursor: pointer;
-            }
-
-    
-            input[type="radio"], input[type="checkbox"] {
-                position: absolute;
-                opacity: 0;
-            }
-    
-            .radio-group label::before, .checkbox-group label::before {
-                content: '';
-                display: inline-block;
-                width: 20px;
-                height: 20px;
-                margin-right: 10px;
-                border: 2px solid var(--primary-color);
-                border-radius: 50%;
-                transition: all 0.3s ease;
-            }
-    
-            .checkbox-group label::before {
-                border-radius: 4px;
-            }
-    
-            input[type="radio"]:checked + label::before {
-                background-color: var(--primary-color);
-                box-shadow: inset 0 0 0 4px var(--input-background);
-            }
-    
-            input[type="checkbox"]:checked + label::before {
-                background-color: var(--primary-color);
-                border-color: var(--primary-color);
-            }
-    
-            input[type="checkbox"]:checked + label::after {
-                content: '✓';
-                position: absolute;
-                left: 5px;
-                top: 1px;
-                color: white;
-                font-size: 14px;
-            }
-    
-            button {
-                display: block;
-                width: 100%;
-                padding: 15px;
-                background-color: var(--primary-color);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 1.1em;
-                transition: background-color 0.3s ease;
-                font-family: 'Nunito', sans-serif;
-            }
-    
-            button:hover {
-                background-color: var(--secondary-color);
-            }
-    
-            .message {
-                text-align: center;
-                margin-top: 20px;
-                padding: 10px;
-                border-radius: 8px;
-            }
-    
-            .success {
-                background-color: var(--success-color);
-                color: white;
-            }
-    
-            .error {
-                background-color: var(--error-color);
-                color: white;
-            }
-        </style>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QDASH Questionnaire</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+            --accent-color: #3fe0d3;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 40px 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            position: relative;
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .message {
+            display: none;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .question {
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .question p {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .choices, .choicevert {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .choices label, .choicevert label {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        .choices label:hover, .choicevert label:hover {
+            background-color: #e9ecef;
+        }
+        .choices input[type="radio"],
+        .choices input[type="checkbox"],
+        .choicevert input[type="radio"],
+        .choicevert input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .choicetextentry {
+            margin-left: 20px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #qrcode {
+            margin-top: 30px;
+            text-align: center;
+        }
+        #qrcode img {
+            margin: 0 auto;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .welcome-message {
+            font-weight: bold;
+            font-size: 1.0em;
+        }
+        .logout-button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .logout-button:hover {
+            background-color: #34495e;
+        }
+        .next-patient-button {
+            background-color: var(--accent-color);
+        }
+        .next-patient-button:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
 <body>
     <div class="container">
+        <div class="user-info">
+            <span class="welcome-message">Welcome Dr. Fang</span>
+            <button class="logout-button">Logout</button>
+        </div>
+
         <h1>QDASH Questionnaire</h1>
-        <form id="questionnaireForm">
-            <!-- Questionnaire content will be dynamically inserted here -->
+        
+        <div id="message" class="message"></div>
+        
+        <form id="questionnaire-form">
+            <div id="questionnaire-container"></div>
+            
+            <button type="submit">Submit Answers</button>
         </form>
-        <div id="message" class="message" style="display: none;"></div>
+
+        <button class="next-patient-button" onclick="nextPatient()">Next Patient</button>
+
+        <div id="qrcode"></div>
     </div>
 
     <script>
-        const apiUrl = 'https://rc.ortho.hku.hk/redcap/api/';
-        const token = '08B8A7788D712148955EC3C15F79D23B';
-
-        async function fetchREDCapData(apiUrl, token) {
-            const formData = new FormData();
-            formData.append('token', token);
-            formData.append('content', 'metadata');
-            formData.append('format', 'json');
-            formData.append('returnFormat', 'json');
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('Error fetching REDCap data:', error);
-                return null;
-            }
+        function insertQuestionnaire() {
+            const container = document.getElementById('questionnaire-container');
+            container.innerHTML = `
+                <div class="question">
+                    <p>How would you rate your experience?</p>
+                    <div class="choices">
+                        <label><input type="radio" name="experience" value="Poor"> Poor</label>
+                        <label><input type="radio" name="experience" value="Fair"> Fair</label>
+                        <label><input type="radio" name="experience" value="Good"> Good</label>
+                        <label><input type="radio" name="experience" value="Excellent"> Excellent</label>
+                    </div>
+                </div>
+                <div class="question">
+                    <p>Which of the following apply to you? (Select all that apply)</p>
+                    <div class="choices">
+                        <label><input type="checkbox" name="attributes" value="Hardworking"> Hardworking</label>
+                        <label><input type="checkbox" name="attributes" value="Creative"> Creative</label>
+                        <label><input type="checkbox" name="attributes" value="Team player"> Team player</label>
+                        <label><input type="checkbox" name="attributes" value="Detail-oriented"> Detail-oriented</label>
+                    </div>
+                </div>
+            `;
         }
 
-        async function renderQuestionnaire() {
-             const redcapData = await fetchREDCapData(apiUrl, token);
+        function gatherFormData() {
+            const form = document.getElementById('questionnaire-form');
+            const formData = new FormData(form);
+            let result = '';
 
-            if (!redcapData) {
-                showMessage('Failed to fetch questionnaire data. Please try again later.', 'error');
-                return;
+            for (const [key, value] of formData.entries()) {
+                const question = form.querySelector(`[name="${key}"]`).closest('.question').querySelector('p').textContent;
+                result += `${question}\nAnswer: ${value}\n\n`;
             }
 
-            const form = document.getElementById('questionnaireForm');
+            return result;
+        }
 
-            redcapData.forEach(field => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'question';
+        function generateQRCode(data) {
+            const qrcodeContainer = document.getElementById('qrcode');
+            qrcodeContainer.innerHTML = '';
 
-                const label = document.createElement('label');
-                label.innerHTML = field.field_label; // Changed from textContent to innerHTML
-                label.setAttribute('for', field.field_name);
-                questionDiv.appendChild(label);
-
-                switch (field.field_type) {
-                    case 'text':
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.id = field.field_name;
-                        input.name = field.field_name;
-                        questionDiv.appendChild(input);
-                        break;
-                    case 'radio':
-                    case 'checkbox':
-                        const optionsDiv = document.createElement('div');
-                        optionsDiv.className = field.field_type === 'radio' ? 'radio-group' : 'checkbox-group';
-                        field.select_choices_or_calculations.split('|').forEach((choice, index) => {
-                            const [value, label] = choice.trim().split(', ');
-                            const optionInput = document.createElement('input');
-                            optionInput.type = field.field_type;
-                            optionInput.id = `${field.field_name}_${index}`;
-                            optionInput.name = field.field_name;
-                            optionInput.value = value;
-
-                            const optionLabel = document.createElement('label');
-                            optionLabel.innerHTML = label; // Changed from textContent to innerHTML
-                            optionLabel.setAttribute('for', `${field.field_name}_${index}`);
-
-                            optionsDiv.appendChild(optionInput);
-                            optionsDiv.appendChild(optionLabel);
-                        });
-                        questionDiv.appendChild(optionsDiv);
-                        break;
-                    case 'notes':
-                        const textarea = document.createElement('textarea');
-                        textarea.id = field.field_name;
-                        textarea.name = field.field_name;
-                        textarea.rows = 4;
-                        questionDiv.appendChild(textarea);
-                        break;
-                }
-
-                form.appendChild(questionDiv);
+            new QRCode(qrcodeContainer, {
+                text: data,
+                width: 128,
+                height: 128,
+                colorDark : "#3498db",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
             });
-            
-            const submitButton = document.createElement('button');
-            submitButton.type = 'submit';
-            submitButton.textContent = 'Submit';
-            form.appendChild(submitButton);
-
-            form.addEventListener('submit', handleSubmit);
         }
 
-        async function handleSubmit(event) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
+        document.getElementById('questionnaire-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = gatherFormData();
+            generateQRCode(formData);
             
-            // Escape HTML in form data
-            const escapedFormData = {};
-            for (let [key, value] of formData.entries()) {
-                escapedFormData[key] = escapeHtml(value);
-            }
+            const message = document.getElementById('message');
+            message.style.display = 'block';
+            message.textContent = 'QR Code generated successfully!';
+            message.style.backgroundColor = '#2ecc71';
             
-            const recordData = {
-                token: token,
-                content: 'record',
-                format: 'json',
-                type: 'flat',
-                data: JSON.stringify([escapedFormData])
-            };
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    body: new URLSearchParams(recordData)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                console.log('Form submitted successfully:', result);
-                showMessage('Form submitted successfully!', 'success');
-                event.target.reset();
-            } catch (error) {
-                console.error('Error submitting form:', error);
-                showMessage('Error submitting form. Please try again.', 'error');
-            }
-        }
-
-        // Function to escape HTML
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
             setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
+                message.style.display = 'none';
+            }, 3000);
+        });
+
+        function nextPatient() {
+            // Replace 'https://example.com/next-patient' with the actual URL you want to navigate to
+            window.location.href = 'https://benson-c.github.io/QREDCap/qr-code-scanner-page.html';
         }
 
-        window.addEventListener('load', renderQuestionnaire);
+        window.onload = insertQuestionnaire;
     </script>
 </body>
 </html>
