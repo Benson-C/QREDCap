@@ -1,0 +1,6 @@
+,Patient Name,Patient ID,Sex,Age,Studies,Knee Score 1,Knee Score 2 (3 months),Knee Score 3 (6 months)
+,Peter Chan,332,Male,51,"TKR002, TKR004",88,90,92
+,Doraemon Hong,123,Female,24,TKR001,65,88,98
+,Steve Rogers,344,Male ,27,"TKR001, TKR003",82,86,95
+,Benson Chang,254,Male,59,"TKR001, TKR002, TKR004",25,55,80
+,Kirby Wu,186,Female,34,"TKR003, TKR004",77,87,100
