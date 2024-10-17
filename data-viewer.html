@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Viewer with Interactive Chart</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+            --accent-color: #3fe0d3;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+        }
+        #fileInput {
+            margin-bottom: 20px;
+        }
+        .container {
+        display: flex;
+        height: calc(100vh - 100px);
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        padding: 20px;
+        }
+        #tableContainer {
+            flex: 1;
+            overflow-y: auto;
+            margin-right: 20px;
+        }
+        #chartContainer {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            color: var(--secondary-color);
+        }
+        .highlight {
+            background-color: #beebff;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #chart {
+            flex: 2;  /* Allow more space for the chart */
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <label for="injurySelect">Select Injury Site:</label>
+    <select id="injurySelect">
+    </select>
+
+    <input type="file" id="fileInput" accept=".csv">
+    <div class="container">
+        <div id="tableContainer"></div>
+        <div id="chartContainer">
+            <div id="chart"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentSort = { column: null, ascending: true }; // To track the current sort state
+        const fileInput = document.getElementById('fileInput');
+        const tableContainer = document.getElementById('tableContainer');
+        const chartContainer = d3.select("#chart");
+        const injurySelect = document.getElementById('injurySelect');
+        let originalData = [];
+    
+        fileInput.addEventListener('change', handleFileUpload);
+        injurySelect.addEventListener('change', handleInjuryFilter);
+    
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+    
+            reader.onload = function(e) {
+                const csvData = e.target.result;
+                const parsedData = parseCSV(csvData);
+                originalData = parsedData; // Store the original data
+                populateInjuryDropdown(parsedData.data); // Populate the dropdown
+                displayTable(parsedData.data); // Display the entire dataset
+                createChart(parsedData); // Create chart for the full dataset
+                fileInput.style.display = 'none'; // Hide the file input
+            };
+    
+            reader.readAsText(file);
+        }
+    
+        function parseCSV(csvData) {
+            const rows = csvData.split('\n');
+            const headers = rows[0].split(',');
+            const data = [];
+    
+            for (let i = 1; i < rows.length; i++) {
+                const values = rows[i].split(',');
+                if (values.length === headers.length) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header.trim()] = values[index].trim();
+                    });
+                    data.push(row);
+                }
+            }
+    
+            return { headers, data };
+        }
+    
+        function populateInjuryDropdown(data) {
+            const injurySites = [...new Set(data.map(item => item['Injury Site']))];
+            injurySelect.innerHTML = '<option value="all">All Injury Sites</option>';
+            injurySites.forEach(site => {
+                const option = document.createElement('option');
+                option.value = site;
+                option.textContent = site;
+                injurySelect.appendChild(option);
+            });
+        }
+    
+        function handleInjuryFilter() {
+            const selectedInjury = injurySelect.value;
+            const filteredData = selectedInjury === 'all' 
+                ? originalData.data 
+                : originalData.data.filter(row => row['Injury Site'] === selectedInjury);
+            
+            displayTable(filteredData); // Update the table
+            createChart({ data: filteredData }); // Update the chart with filtered data
+        }
+    
+        function displayTable(data) {
+            const table = document.createElement('table');
+            const headers = Object.keys(data[0]);
+            const headerRow = table.insertRow();
+
+            headers.forEach((header, index) => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                th.style.cursor = 'pointer'; // Make it clear the header is clickable
+                th.addEventListener('click', () => handleSort(header, index, data)); // Add sorting event
+                headerRow.appendChild(th);
+            });
+
+            data.forEach((row, index) => {
+                const tr = table.insertRow();
+                tr.id = `row-${index}`;
+                headers.forEach(header => {
+                    const td = tr.insertCell();
+                    td.textContent = row[header];
+                });
+            });
+
+            tableContainer.innerHTML = '';
+            tableContainer.appendChild(table);
+        }
+
+        function handleSort(column, index, data) {
+            // Determine the sort order (toggle between ascending and descending)
+            const ascending = currentSort.column === column ? !currentSort.ascending : true;
+            currentSort = { column, ascending };
+
+            const sortedData = data.sort((a, b) => {
+                const valA = a[column];
+                const valB = b[column];
+
+                if (!isNaN(valA) && !isNaN(valB)) { // If both values are numbers
+                    return ascending ? valA - valB : valB - valA;
+                } else { // For string comparison
+                    return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+            });
+
+            displayTable(sortedData); // Re-render the table with the sorted data
+        }
+
+        function createChart(data) {
+            const chartDiv = document.getElementById('chartContainer');
+            const width = chartDiv.clientWidth - 40;  // Padding/margin
+            const height = chartDiv.clientHeight - 40; // Padding/margin
+
+            const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+
+            // Clear previous chart
+            chartContainer.select("svg").remove();
+
+            const svg = chartContainer.append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const scoreColumns = ["Score (1 week)", "Score (2 weeks)", "Score (1 month)", "Score (3 months)", "Score (6 months)", "Score (9 months)", "Score (12 months)"];
+            const timePoints = [1, 2, 4, 12, 24, 36, 48];
+
+            const x = d3.scaleLinear()
+                .domain([0, d3.max(timePoints)])
+                .range([0, width]);
+
+            const y = d3.scaleLinear()
+                .domain([60, 100])
+                .range([height, 0]);
+
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x).tickValues(timePoints).tickFormat(d => d));
+
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            const line = d3.line()
+                .x((d, i) => x(timePoints[i]))
+                .y(d => y(d));
+
+            data.data.forEach((patient, index) => {
+                const scores = scoreColumns.map(col => parseFloat(patient[col]));
+
+                svg.append("path")
+                    .datum(scores)
+                    .attr("fill", "none")
+                    .attr("stroke", "steelblue")
+                    .attr("stroke-width", 1.5)
+                    .attr("d", line)
+                    .attr("opacity", 0.25)
+                    .attr("class", `patient-line patient-${index}`)
+                    .on("mouseover", function () {
+                        d3.select(this).attr("opacity", 1).attr("stroke-width", 3);
+                    })
+                    .on("mouseout", function () {
+                        d3.select(this).attr("opacity", 0.25).attr("stroke-width", 1.5);
+                    })
+                    .on("click", function () {
+                        const rowId = `row-${index}`;
+                        const row = document.getElementById(rowId);
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        row.classList.add('highlight');
+                        setTimeout(() => row.classList.remove('highlight'), 2000);
+                    });
+            });
+
+            svg.append("text")
+                .attr("transform", `translate(${width / 2},${height + margin.top + 20})`)
+                .style("text-anchor", "middle")
+                .text("Time after surgery (weeks)");
+
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Score");
+        }
+    </script>
+</body>
+</html>
