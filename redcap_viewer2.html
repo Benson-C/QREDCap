@@ -222,7 +222,7 @@
 
             for (const [key, value] of formData.entries()) {
                 const question = form.querySelector(`[name="${key}"]`).closest('.question').querySelector('p').textContent;
-                result += `${question}\nAnswer: ${value}\n\n`;
+                result += `${question}\n${value}\n\n`;
             }
 
             return result;
